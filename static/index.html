@@ -3,500 +3,436 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>TikSave — Téléchargeur TikTok</title>
+  <title>Social Downloader</title>
+  <link rel="manifest" href="/manifest.json" />
+  <meta name="theme-color" content="#0f0f0f" />
   <link rel="preconnect" href="https://fonts.googleapis.com" />
-  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;600;700;800&family=Space+Mono:wght@400;700&display=swap" rel="stylesheet" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=Syne:wght@400;700;800&display=swap" rel="stylesheet" />
   <style>
     :root {
-      --bg: #080a0f;
-      --surface: #0f1117;
-      --border: #1e2330;
-      --neon: #00f5d4;
-      --neon2: #ff3cac;
-      --neon3: #ffea00;
-      --text: #e8eaf2;
-      --muted: #5a6070;
-      --radius: 16px;
+      --bg: #0c0c0c;
+      --surface: #141414;
+      --border: #222;
+      --text: #f0f0f0;
+      --muted: #666;
+      --accent: #e8ff57;
+      --accent2: #57d6ff;
+      --radius: 12px;
     }
 
-    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
 
     body {
-      font-family: 'Syne', sans-serif;
       background: var(--bg);
       color: var(--text);
+      font-family: 'Syne', sans-serif;
       min-height: 100vh;
       display: flex;
       flex-direction: column;
       align-items: center;
-      justify-content: center;
-      padding: 2rem 1rem;
-      overflow-x: hidden;
-      position: relative;
+      padding: 2rem 1rem 4rem;
     }
 
-    /* Ambient background blobs */
-    body::before, body::after {
-      content: '';
-      position: fixed;
-      border-radius: 50%;
-      filter: blur(120px);
-      pointer-events: none;
-      z-index: 0;
-    }
-    body::before {
-      width: 500px; height: 500px;
-      background: rgba(0, 245, 212, 0.07);
-      top: -100px; left: -100px;
-    }
-    body::after {
-      width: 400px; height: 400px;
-      background: rgba(255, 60, 172, 0.06);
-      bottom: -100px; right: -80px;
-    }
-
-    .container {
-      position: relative;
-      z-index: 1;
-      width: 100%;
-      max-width: 640px;
-    }
-
-    /* Header */
+    /* ── Header ── */
     header {
       text-align: center;
-      margin-bottom: 3rem;
+      margin-bottom: 2.5rem;
     }
-
-    .logo-badge {
-      display: inline-flex;
-      align-items: center;
-      gap: 0.5rem;
-      background: rgba(0, 245, 212, 0.08);
-      border: 1px solid rgba(0, 245, 212, 0.2);
-      border-radius: 100px;
-      padding: 0.4rem 1rem;
-      font-family: 'Space Mono', monospace;
-      font-size: 0.75rem;
-      color: var(--neon);
-      letter-spacing: 0.1em;
-      margin-bottom: 1.5rem;
-    }
-    .logo-badge::before {
-      content: '▶';
-      font-size: 0.6rem;
-    }
-
-    h1 {
-      font-size: clamp(2.5rem, 8vw, 3.8rem);
+    header h1 {
+      font-size: clamp(2rem, 6vw, 3.5rem);
       font-weight: 800;
-      line-height: 1;
       letter-spacing: -0.03em;
-      background: linear-gradient(135deg, #fff 0%, var(--neon) 50%, var(--neon2) 100%);
-      -webkit-background-clip: text;
-      -webkit-text-fill-color: transparent;
-      background-clip: text;
-      margin-bottom: 0.75rem;
+      line-height: 1;
     }
-
-    .subtitle {
+    header h1 span { color: var(--accent); }
+    header p {
+      margin-top: .6rem;
       color: var(--muted);
-      font-size: 1rem;
-      font-weight: 400;
+      font-family: 'Space Mono', monospace;
+      font-size: .8rem;
     }
 
-    /* Card */
+    /* ── Platform pills ── */
+    .platforms {
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+      justify-content: center;
+      margin-bottom: 2rem;
+      max-width: 640px;
+    }
+    .pill {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: .3rem .8rem;
+      font-size: .72rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      display: flex;
+      align-items: center;
+      gap: .35rem;
+    }
+    .pill .dot { width: 6px; height: 6px; border-radius: 50%; background: var(--accent); }
+
+    /* ── Card ── */
     .card {
       background: var(--surface);
       border: 1px solid var(--border);
-      border-radius: 24px;
-      padding: 2rem;
-      position: relative;
-      overflow: hidden;
-    }
-    .card::before {
-      content: '';
-      position: absolute;
-      inset: 0;
-      border-radius: 24px;
-      padding: 1px;
-      background: linear-gradient(135deg, rgba(0,245,212,0.3), transparent 40%, rgba(255,60,172,0.2));
-      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
-      -webkit-mask-composite: xor;
-      mask-composite: exclude;
-      pointer-events: none;
+      border-radius: var(--radius);
+      padding: 1.8rem;
+      width: 100%;
+      max-width: 580px;
     }
 
-    /* Quality toggle */
-    .quality-toggle {
+    label {
+      display: block;
+      font-size: .78rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      margin-bottom: .5rem;
+      text-transform: uppercase;
+      letter-spacing: .08em;
+    }
+
+    .input-row {
       display: flex;
-      background: var(--bg);
-      border-radius: 12px;
-      padding: 4px;
-      margin-bottom: 1.25rem;
-      gap: 4px;
+      gap: .6rem;
+      margin-bottom: 1.2rem;
     }
-    .quality-btn {
+    input[type="text"] {
       flex: 1;
-      padding: 0.6rem;
-      border: none;
-      border-radius: 9px;
-      cursor: pointer;
-      font-family: 'Syne', sans-serif;
-      font-size: 0.85rem;
-      font-weight: 600;
-      transition: all 0.2s;
-      background: transparent;
-      color: var(--muted);
+      background: var(--bg);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .75rem 1rem;
+      color: var(--text);
+      font-family: 'Space Mono', monospace;
+      font-size: .82rem;
+      outline: none;
+      transition: border-color .2s;
     }
-    .quality-btn.active {
-      background: var(--neon);
-      color: #000;
-    }
-    .quality-btn:not(.active):hover { color: var(--text); }
+    input[type="text"]:focus { border-color: var(--accent); }
+    input[type="text"]::placeholder { color: var(--muted); }
 
-    /* URL input */
-    .input-wrap {
-      position: relative;
-      margin-bottom: 1.25rem;
+    /* ── Platform badge (auto-détecté) ── */
+    #platform-badge {
+      display: none;
+      align-items: center;
+      gap: .5rem;
+      background: #1a1a1a;
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .5rem .9rem;
+      font-family: 'Space Mono', monospace;
+      font-size: .78rem;
+      margin-bottom: 1.2rem;
+      color: var(--accent2);
     }
-    .url-icon {
-      position: absolute;
-      left: 1rem;
-      top: 50%;
-      transform: translateY(-50%);
-      color: var(--muted);
-      font-size: 1rem;
-      pointer-events: none;
-    }
-    input[type="url"], input[type="text"] {
+    #platform-badge.visible { display: flex; }
+
+    /* ── Quality select ── */
+    select {
       width: 100%;
       background: var(--bg);
       border: 1px solid var(--border);
-      border-radius: 12px;
-      padding: 0.9rem 1rem 0.9rem 2.8rem;
+      border-radius: 8px;
+      padding: .75rem 1rem;
       color: var(--text);
       font-family: 'Space Mono', monospace;
-      font-size: 0.85rem;
+      font-size: .82rem;
       outline: none;
-      transition: border-color 0.2s;
-    }
-    input:focus {
-      border-color: var(--neon);
-      box-shadow: 0 0 0 3px rgba(0, 245, 212, 0.1);
-    }
-    input::placeholder { color: var(--muted); }
-
-    /* Download button */
-    .btn-download {
-      width: 100%;
-      padding: 1rem;
-      background: var(--neon);
-      color: #000;
-      border: none;
-      border-radius: 12px;
-      font-family: 'Syne', sans-serif;
-      font-size: 1rem;
-      font-weight: 700;
       cursor: pointer;
-      letter-spacing: 0.02em;
-      transition: all 0.2s;
-      position: relative;
-      overflow: hidden;
-    }
-    .btn-download:hover:not(:disabled) {
-      background: #00dfc0;
-      box-shadow: 0 0 30px rgba(0, 245, 212, 0.4);
-      transform: translateY(-1px);
-    }
-    .btn-download:active { transform: translateY(0); }
-    .btn-download:disabled { opacity: 0.5; cursor: not-allowed; }
-
-    /* Status area */
-    .status-area {
-      margin-top: 1.5rem;
-      display: none;
-    }
-    .status-area.visible { display: block; }
-
-    /* Progress */
-    .progress-wrap {
-      background: var(--bg);
-      border-radius: 100px;
-      height: 6px;
-      overflow: hidden;
-      margin-bottom: 1rem;
-    }
-    .progress-bar {
-      height: 100%;
-      border-radius: 100px;
-      background: linear-gradient(90deg, var(--neon), var(--neon2));
-      width: 0%;
-      transition: width 0.3s ease;
-      animation: shimmer 1.5s infinite;
-    }
-    @keyframes shimmer {
-      0% { filter: brightness(1); }
-      50% { filter: brightness(1.3); }
-      100% { filter: brightness(1); }
+      margin-bottom: 1.4rem;
+      appearance: none;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='8' fill='none'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%23666' stroke-width='1.5' stroke-linecap='round'/%3E%3C/svg%3E");
+      background-repeat: no-repeat;
+      background-position: right 1rem center;
     }
 
-    .status-text {
+    /* ── Button ── */
+    button#dl-btn {
+      width: 100%;
+      background: var(--accent);
+      color: #0c0c0c;
+      border: none;
+      border-radius: 8px;
+      padding: .85rem;
+      font-family: 'Syne', sans-serif;
+      font-weight: 700;
+      font-size: 1rem;
+      cursor: pointer;
+      transition: opacity .2s, transform .1s;
+    }
+    button#dl-btn:hover { opacity: .88; }
+    button#dl-btn:active { transform: scale(.98); }
+    button#dl-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    /* ── Status area ── */
+    #status-area {
+      margin-top: 1.4rem;
       font-family: 'Space Mono', monospace;
-      font-size: 0.8rem;
-      color: var(--muted);
-      text-align: center;
-      margin-bottom: 1rem;
-    }
-
-    /* Result card */
-    .result-card {
-      background: rgba(0, 245, 212, 0.05);
-      border: 1px solid rgba(0, 245, 212, 0.2);
-      border-radius: 14px;
-      padding: 1.25rem;
+      font-size: .8rem;
       display: none;
-      animation: fadeUp 0.4s ease;
     }
-    .result-card.visible { display: block; }
-    @keyframes fadeUp {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
+    #status-area.visible { display: block; }
 
-    .result-title {
-      font-size: 0.9rem;
-      font-weight: 600;
-      margin-bottom: 1rem;
-      color: var(--text);
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .btn-save {
+    .status-row {
       display: flex;
       align-items: center;
-      justify-content: center;
-      gap: 0.5rem;
-      width: 100%;
-      padding: 0.85rem;
-      background: transparent;
-      border: 1px solid var(--neon);
-      border-radius: 10px;
-      color: var(--neon);
-      font-family: 'Syne', sans-serif;
-      font-size: 0.9rem;
-      font-weight: 700;
-      cursor: pointer;
-      transition: all 0.2s;
-      text-decoration: none;
+      gap: .7rem;
+      padding: .8rem 1rem;
+      border-radius: 8px;
+      background: var(--bg);
+      border: 1px solid var(--border);
     }
-    .btn-save:hover {
-      background: var(--neon);
-      color: #000;
+    .spinner {
+      width: 16px; height: 16px;
+      border: 2px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin .7s linear infinite;
+      flex-shrink: 0;
     }
-
-    /* Error */
-    .error-box {
-      background: rgba(255, 60, 172, 0.08);
-      border: 1px solid rgba(255, 60, 172, 0.3);
-      border-radius: 12px;
-      padding: 1rem;
-      font-size: 0.85rem;
-      color: #ff7abf;
-      display: none;
-      font-family: 'Space Mono', monospace;
-    }
-    .error-box.visible { display: block; }
-
-    /* Footer */
-    footer {
-      text-align: center;
-      margin-top: 2.5rem;
-      color: var(--muted);
-      font-size: 0.78rem;
-      line-height: 1.6;
-    }
-    footer span { color: var(--neon2); }
-
-    /* Spinner animation in btn */
     @keyframes spin { to { transform: rotate(360deg); } }
-    .spin { display: inline-block; animation: spin 0.7s linear infinite; }
 
-    /* Dots loader */
-    .dots span { animation: blink 1.2s infinite; }
-    .dots span:nth-child(2) { animation-delay: 0.2s; }
-    .dots span:nth-child(3) { animation-delay: 0.4s; }
-    @keyframes blink { 0%,100%{opacity:0.2} 50%{opacity:1} }
+    .status-text { color: var(--muted); flex: 1; }
+    .status-error .status-text { color: #ff5757; }
+
+    #dl-link {
+      display: inline-flex;
+      align-items: center;
+      gap: .5rem;
+      margin-top: .9rem;
+      background: #1a2a00;
+      border: 1px solid #2e4a00;
+      color: var(--accent);
+      text-decoration: none;
+      border-radius: 8px;
+      padding: .7rem 1.2rem;
+      font-weight: 700;
+      font-size: .85rem;
+      transition: background .2s;
+    }
+    #dl-link:hover { background: #223800; }
+
+    /* ── Supported list ── */
+    .supported-title {
+      margin-top: 2.5rem;
+      font-size: .7rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: .1em;
+      text-align: center;
+    }
+    .supported-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(130px, 1fr));
+      gap: .5rem;
+      margin-top: .8rem;
+      max-width: 580px;
+      width: 100%;
+    }
+    .site-card {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      padding: .5rem .7rem;
+      display: flex;
+      align-items: center;
+      gap: .5rem;
+      font-size: .75rem;
+      font-family: 'Space Mono', monospace;
+      color: var(--muted);
+    }
+    .site-icon { font-size: 1rem; }
   </style>
 </head>
 <body>
-  <div class="container">
-    <header>
-      <div class="logo-badge">TIKSAVE v1.0</div>
-      <h1>TikSave</h1>
-      <p class="subtitle">Télécharge tes vidéos TikTok sans watermark</p>
-    </header>
 
-    <div class="card">
-      <!-- Qualité -->
-      <div class="quality-toggle">
-        <button class="quality-btn active" data-q="video" onclick="setQuality(this)">🎬 Vidéo MP4</button>
-        <button class="quality-btn" data-q="audio" onclick="setQuality(this)">🎵 Audio MP3</button>
-      </div>
+  <header>
+    <h1>Social<span>Down</span></h1>
+    <p>// Téléchargeur universel — 1000+ sites supportés</p>
+  </header>
 
-      <!-- Input URL -->
-      <div class="input-wrap">
-        <span class="url-icon">🔗</span>
-        <input type="text" id="urlInput" placeholder="https://www.tiktok.com/@user/video/..." />
-      </div>
+  <div class="platforms">
+    <div class="pill"><span class="dot"></span>TikTok</div>
+    <div class="pill"><span class="dot"></span>YouTube</div>
+    <div class="pill"><span class="dot"></span>Instagram</div>
+    <div class="pill"><span class="dot"></span>Facebook</div>
+    <div class="pill"><span class="dot"></span>Twitter/X</div>
+    <div class="pill"><span class="dot"></span>Snapchat</div>
+    <div class="pill"><span class="dot"></span>Pinterest</div>
+    <div class="pill"><span class="dot"></span>Reddit</div>
+    <div class="pill"><span class="dot"></span>Twitch</div>
+    <div class="pill"><span class="dot"></span>Vimeo</div>
+    <div class="pill"><span class="dot"></span>Dailymotion</div>
+    <div class="pill"><span class="dot"></span>+ bien d'autres…</div>
+  </div>
 
-      <!-- Bouton -->
-      <button class="btn-download" id="dlBtn" onclick="startDownload()">
-        Télécharger
-      </button>
-
-      <!-- Zone de statut -->
-      <div class="status-area" id="statusArea">
-        <div class="progress-wrap">
-          <div class="progress-bar" id="progressBar"></div>
-        </div>
-        <div class="status-text" id="statusText">
-          Préparation<span class="dots"><span>.</span><span>.</span><span>.</span></span>
-        </div>
-
-        <div class="result-card" id="resultCard">
-          <div class="result-title" id="resultTitle"></div>
-          <a class="btn-save" id="downloadLink" href="#" download>
-            ⬇ Enregistrer le fichier
-          </a>
-        </div>
-
-        <div class="error-box" id="errorBox"></div>
-      </div>
+  <div class="card">
+    <label for="url-input">Colle ton lien ici</label>
+    <div class="input-row">
+      <input type="text" id="url-input" placeholder="https://..." autocomplete="off" autocorrect="off" spellcheck="false" />
     </div>
 
-    <footer>
-      Utilise <span>yt-dlp</span> en backend · Usage personnel uniquement<br/>
-      Respecte les <span>conditions d'utilisation</span> de TikTok
-    </footer>
+    <div id="platform-badge">
+      <span id="platform-icon">🌐</span>
+      <span id="platform-name">Web</span>
+      <span style="color:var(--muted);margin-left:auto;">détecté</span>
+    </div>
+
+    <label for="quality-select">Qualité / Format</label>
+    <select id="quality-select">
+      <option value="best">🎬 Meilleure qualité (vidéo)</option>
+      <option value="720p">📺 720p HD</option>
+      <option value="480p">📱 480p (léger)</option>
+      <option value="audio">🎵 Audio seulement (MP3)</option>
+    </select>
+
+    <button id="dl-btn" onclick="startDownload()">⬇ Télécharger</button>
+
+    <div id="status-area">
+      <div class="status-row" id="status-row">
+        <div class="spinner" id="spinner"></div>
+        <span class="status-text" id="status-text">Traitement en cours…</span>
+      </div>
+      <a id="dl-link" href="#" style="display:none;" target="_blank">
+        ⬇ &nbsp;Télécharger le fichier
+      </a>
+    </div>
+  </div>
+
+  <p class="supported-title">Quelques plateformes supportées</p>
+  <div class="supported-grid">
+    <div class="site-card"><span class="site-icon">🎵</span> TikTok</div>
+    <div class="site-card"><span class="site-icon">▶️</span> YouTube</div>
+    <div class="site-card"><span class="site-icon">📸</span> Instagram</div>
+    <div class="site-card"><span class="site-icon">📘</span> Facebook</div>
+    <div class="site-card"><span class="site-icon">🐦</span> Twitter / X</div>
+    <div class="site-card"><span class="site-icon">👻</span> Snapchat</div>
+    <div class="site-card"><span class="site-icon">📌</span> Pinterest</div>
+    <div class="site-card"><span class="site-icon">🎮</span> Twitch</div>
+    <div class="site-card"><span class="site-icon">🎬</span> Dailymotion</div>
+    <div class="site-card"><span class="site-icon">🎞</span> Vimeo</div>
+    <div class="site-card"><span class="site-icon">🎶</span> SoundCloud</div>
+    <div class="site-card"><span class="site-icon">👽</span> Reddit</div>
+    <div class="site-card"><span class="site-icon">💼</span> LinkedIn</div>
+    <div class="site-card"><span class="site-icon">🇨🇳</span> Bilibili</div>
+    <div class="site-card"><span class="site-icon">🌐</span> 1000+ autres</div>
   </div>
 
   <script>
-    let selectedQuality = "video";
-    let pollingInterval = null;
+    const PLATFORM_ICONS = {
+      "TikTok": "🎵", "YouTube": "▶️", "Instagram": "📸",
+      "Facebook": "📘", "Twitter/X": "🐦", "Snapchat": "👻",
+      "Pinterest": "📌", "Reddit": "👽", "Twitch": "🎮",
+      "Dailymotion": "🎬", "Vimeo": "🎞", "SoundCloud": "🎶",
+      "Tumblr": "📓", "LinkedIn": "💼", "Bilibili": "🇨🇳",
+      "Likee": "❤️", "Triller": "🎤", "Kwai": "🌿", "Web": "🌐",
+    };
 
-    function setQuality(btn) {
-      document.querySelectorAll('.quality-btn').forEach(b => b.classList.remove('active'));
-      btn.classList.add('active');
-      selectedQuality = btn.dataset.q;
-    }
-
-    function setProgress(pct) {
-      document.getElementById('progressBar').style.width = pct + '%';
-    }
-
-    function showStatus(msg) {
-      document.getElementById('statusText').innerHTML = msg;
-    }
-
-    function reset() {
-      clearInterval(pollingInterval);
-      document.getElementById('resultCard').classList.remove('visible');
-      document.getElementById('errorBox').classList.remove('visible');
-      document.getElementById('progressBar').style.width = '0%';
-    }
-
-    async function startDownload() {
-      const url = document.getElementById('urlInput').value.trim();
-      if (!url) {
-        alert('Colle d\'abord l\'URL TikTok !');
-        return;
+    let debounceTimer = null;
+    document.getElementById("url-input").addEventListener("input", function () {
+      clearTimeout(debounceTimer);
+      const url = this.value.trim();
+      if (!url.startsWith("http")) {
+        hideBadge(); return;
       }
+      debounceTimer = setTimeout(() => detectPlatform(url), 400);
+    });
 
-      reset();
-
-      const btn = document.getElementById('dlBtn');
-      btn.disabled = true;
-      btn.innerHTML = '<span class="spin">⟳</span> Traitement...';
-
-      document.getElementById('statusArea').classList.add('visible');
-      showStatus('Envoi de la requête<span class="dots"><span>.</span><span>.</span><span>.</span></span>');
-      setProgress(15);
-
+    async function detectPlatform(url) {
       try {
-        const res = await fetch('/api/download', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ url, quality: selectedQuality }),
+        const res = await fetch("/api/detect", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url }),
         });
         const data = await res.json();
+        showBadge(data.platform || "Web");
+      } catch { hideBadge(); }
+    }
 
-        if (data.error) throw new Error(data.error);
+    function showBadge(platform) {
+      const badge = document.getElementById("platform-badge");
+      document.getElementById("platform-icon").textContent = PLATFORM_ICONS[platform] || "🌐";
+      document.getElementById("platform-name").textContent = platform;
+      badge.classList.add("visible");
+    }
+    function hideBadge() {
+      document.getElementById("platform-badge").classList.remove("visible");
+    }
+
+    let pollInterval = null;
+
+    async function startDownload() {
+      const url = document.getElementById("url-input").value.trim();
+      const quality = document.getElementById("quality-select").value;
+
+      if (!url) { alert("Colle une URL d'abord 😉"); return; }
+
+      // Reset UI
+      clearInterval(pollInterval);
+      document.getElementById("dl-link").style.display = "none";
+      document.getElementById("dl-btn").disabled = true;
+      setStatus("processing", "Téléchargement en cours…");
+      document.getElementById("status-area").classList.add("visible");
+
+      try {
+        const res = await fetch("/api/download", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ url, quality }),
+        });
+        const data = await res.json();
+        if (data.error) { setStatus("error", data.error); enableBtn(); return; }
 
         const taskId = data.task_id;
-        setProgress(30);
-        showStatus('Téléchargement en cours<span class="dots"><span>.</span><span>.</span><span>.</span></span>');
-
-        // Polling
-        let ticks = 0;
-        pollingInterval = setInterval(async () => {
-          ticks++;
-          const p = Math.min(30 + ticks * 5, 90);
-          setProgress(p);
-
-          const sr = await fetch(`/api/status/${taskId}`);
-          const sd = await sr.json();
-
-          if (sd.status === 'done') {
-            clearInterval(pollingInterval);
-            setProgress(100);
-            showStatus('✅ Prêt !');
-
-            document.getElementById('resultTitle').textContent = sd.title || 'Vidéo TikTok';
-            document.getElementById('downloadLink').href = `/api/file/${taskId}`;
-            document.getElementById('resultCard').classList.add('visible');
-
-            btn.disabled = false;
-            btn.innerHTML = 'Télécharger une autre';
-          } else if (sd.status === 'error') {
-            clearInterval(pollingInterval);
-            const errBox = document.getElementById('errorBox');
-            errBox.textContent = '❌ Erreur : ' + (sd.error || 'Échec du téléchargement');
-            errBox.classList.add('visible');
-            setProgress(0);
-            showStatus('');
-            btn.disabled = false;
-            btn.innerHTML = 'Réessayer';
-          }
-
-          if (ticks > 60) { // timeout 60s
-            clearInterval(pollingInterval);
-            const errBox = document.getElementById('errorBox');
-            errBox.textContent = '⏱ Timeout — le serveur a mis trop de temps.';
-            errBox.classList.add('visible');
-            btn.disabled = false;
-            btn.innerHTML = 'Réessayer';
-          }
-        }, 1000);
-
-      } catch (err) {
-        const errBox = document.getElementById('errorBox');
-        errBox.textContent = '❌ ' + err.message;
-        errBox.classList.add('visible');
-        setProgress(0);
-        showStatus('');
-        btn.disabled = false;
-        btn.innerHTML = 'Réessayer';
+        pollInterval = setInterval(() => pollStatus(taskId), 1500);
+      } catch (e) {
+        setStatus("error", "Erreur réseau : " + e.message);
+        enableBtn();
       }
     }
 
-    // Permettre Enter
-    document.getElementById('urlInput').addEventListener('keydown', e => {
-      if (e.key === 'Enter') startDownload();
-    });
+    async function pollStatus(taskId) {
+      try {
+        const res = await fetch(`/api/status/${taskId}`);
+        const data = await res.json();
+
+        if (data.status === "done") {
+          clearInterval(pollInterval);
+          setStatus("done", `✅ ${data.title || "Téléchargement terminé"}`);
+          const link = document.getElementById("dl-link");
+          link.href = `/api/file/${taskId}`;
+          link.style.display = "inline-flex";
+          enableBtn();
+        } else if (data.status === "error") {
+          clearInterval(pollInterval);
+          setStatus("error", "❌ " + (data.error || "Erreur inconnue"));
+          enableBtn();
+        }
+      } catch (e) {
+        clearInterval(pollInterval);
+        setStatus("error", "Erreur réseau.");
+        enableBtn();
+      }
+    }
+
+    function setStatus(type, msg) {
+      const row = document.getElementById("status-row");
+      const text = document.getElementById("status-text");
+      const spinner = document.getElementById("spinner");
+      text.textContent = msg;
+      row.className = "status-row" + (type === "error" ? " status-error" : "");
+      spinner.style.display = (type === "processing") ? "block" : "none";
+    }
+
+    function enableBtn() {
+      document.getElementById("dl-btn").disabled = false;
+    }
   </script>
 </body>
 </html>
